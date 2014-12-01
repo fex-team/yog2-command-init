@@ -1,0 +1,26 @@
+{
+  "name": "yog2-command-init",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fex-team/yog2-command-init"
+  },
+  "keywords": [
+    "yog2",
+    "init"
+  ],
+  "author": "fis@baidu.com",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/fex-team/yog2-command-init/issues"
+  },
+  "homepage": "https://github.com/fex-team/yog2-command-init",
+  "dependencies": {
+    "fis-scaffold-kernel": "0.0.7"
+  }
+}
