@@ -50,11 +50,14 @@ exports.register = function(commander) {
                 level: 4 //default show all log; set `0` == silent.
             }
         });
-        fis.log.notice('Downloading and unzipping');
+        fis.log.notice('Downloading and unzipping...');
         var dir = process.cwd();
         var prompts = null;
         var keyword_reg = conf.config.keyword_reg || /\{\{-([\s\S]*?)-\}\}/ig;
         scaffold.download(conf.config.repos + '@' + version, function (err, tmp_path) {
+            if (err){
+                fis.log.error(err);
+            }
             var files = scaffold.util.find(tmp_path);
             scaffold.prompt(conf.config.prompt, function (err, results) {
                 if (err) {
