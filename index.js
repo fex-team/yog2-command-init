@@ -11,6 +11,7 @@ exports.usage = '<command> [options]';
 exports.desc = 'A awesome scaffold of fis';
 
 var templates = require('./config/scaffold.js');
+var fs = require('fs');
 
 
 exports.register = function(commander) {
@@ -61,7 +62,7 @@ exports.register = function(commander) {
             var files = scaffold.util.find(tmp_path);
             scaffold.prompt(conf.config.prompt, function (err, results) {
                 if (err) {
-                    fis.log.fatal(err);
+                    fis.log.error(err);
                 }
                 prompts = results;
                 fis.util.map(files, function (index, filepath) {
@@ -70,16 +71,18 @@ exports.register = function(commander) {
                     });
                     fis.util.map(results, function (k, v) {
                         fis.util.map(files, function (index, filepath) {
-                            var content = fis.util.fs.readFileSync(filepath, {
-                                encoding: 'utf8'
-                            });
-                            content = content.replace(keyword_reg, function (m, $1) {
-                                if ($1 == k) {
-                                    m = v;
-                                }
-                                return m;
-                            });
-                            fis.util.fs.writeFileSync(filepath, content);
+                            if (fs.lstatSync(filepath).isSymbolicLink() === false){
+                                var content = fis.util.fs.readFileSync(filepath, {
+                                    encoding: 'utf8'
+                                });
+                                content = content.replace(keyword_reg, function (m, $1) {
+                                    if ($1 == k) {
+                                        m = v;
+                                    }
+                                    return m;
+                                });
+                                fis.util.fs.writeFileSync(filepath, content);
+                            }
                         });
                     });
                 });
