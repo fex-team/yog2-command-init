@@ -36,6 +36,11 @@ exports.register = function(commander) {
             fis.log.throw = true;
         }
 
+        if (!template) {
+            commander.outputHelp();
+            return;
+        }
+
         template = template.split('@');
 
         var version = template.length == 2 ? template[1] : 'master';
