@@ -45,7 +45,12 @@ exports.register = function(commander) {
 
         var version = template.length == 2 ? template[1] : 'master';
 
-        var conf = templates[template[0]];
+        var name = template[0];
+        if (name === 'yog'){
+            name = 'project';
+        }
+
+        var conf = templates[name];
 
         if (!conf){
             fis.log.error('invalid init command, see -h');

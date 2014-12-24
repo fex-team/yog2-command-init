@@ -19,7 +19,7 @@ module.exports = {
             ]
         }
     },
-    'yog': {
+    'project': {
         'info': 'create a base yog',
         'config': {
             'type': 'github',
@@ -46,19 +46,5 @@ module.exports = {
                 }
             ]
         }
-    },
-    'spa': {
-        'info': 'create a spa demo',
-        'config': {
-            'type': 'github',
-            'repos': 'fex-team/yog2-spa-demo',
-            'prompt': [],
-            'roadmap': [
-                {
-                    reg: '**',
-                    release: '/spa/$&'
-                }
-            ]
-        }
-    },    
+    } 
 };
