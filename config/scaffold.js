@@ -24,11 +24,17 @@ module.exports = {
         'config': {
             'type': 'github',
             'repos': 'fex-team/yog2-framework-template',
-            'prompt': [],
+            'prompt': [{
+                name: 'project_name',
+                description: 'Enter your project name',
+                type: 'string',
+                required: true,
+                'default': 'yog'
+            }],
             'roadmap': [
                 {
                     reg: '**',
-                    release: '/yog/$&'
+                    release: '/${project_name}/$&'
                 }
             ]
         }
@@ -42,7 +48,7 @@ module.exports = {
             'roadmap': [
                 {
                     reg: '**',
-                    release: '/yog/$&'
+                    release: '/$&'
                 }
             ]
         }
