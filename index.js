@@ -75,25 +75,20 @@ exports.register = function(commander) {
                     fis.log.error(err);
                 }
                 prompts = results;
-                fis.util.map(files, function (index, filepath) {
-                    var content = fis.util.fs.readFileSync(filepath, {
-                        encoding: 'utf8'
-                    });
-                    fis.util.map(results, function (k, v) {
-                        fis.util.map(files, function (index, filepath) {
-                            if (fs.lstatSync(filepath).isSymbolicLink() === false){
-                                var content = fis.util.fs.readFileSync(filepath, {
-                                    encoding: 'utf8'
-                                });
-                                content = content.replace(keyword_reg, function (m, $1) {
-                                    if ($1 == k) {
-                                        m = v;
-                                    }
-                                    return m;
-                                });
-                                fis.util.fs.writeFileSync(filepath, content);
-                            }
-                        });
+                fis.util.map(results, function (k, v) {
+                    fis.util.map(files, function (index, filepath) {
+                        if (fs.lstatSync(filepath).isSymbolicLink() === false && fis.util.isTextFile(filepath)){
+                            var content = fis.util.fs.readFileSync(filepath, {
+                                encoding: 'utf8'
+                            });
+                            content = content.replace(keyword_reg, function (m, $1) {
+                                if ($1 == k) {
+                                    m = v;
+                                }
+                                return m;
+                            });
+                            fis.util.fs.writeFileSync(filepath, content);
+                        }
                     });
                 });
                 conf.config.roadmap.forEach(function(ruler){
