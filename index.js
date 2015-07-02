@@ -62,7 +62,6 @@ exports.register = function (commander) {
         // 检测是否是APP目录
         if (conf.config.needApp) {
             try {
-
                 fs.statSync(path.join(dir, 'fis-conf.js'));
                 fs.statSync(path.join(dir, 'server'));
                 fs.statSync(path.join(dir, 'client'));
@@ -82,9 +81,16 @@ exports.register = function (commander) {
         });
         fis.log.notice('Downloading and unzipping...');
         var keyword_reg = conf.config.keyword_reg || /\{\{-([\s\S]*?)-\}\}/ig;
-
+        var useCustom = false;
         if (conf.config.allowCustom && conf.config.customPath) {
             var customPath = path.join(dir, conf.config.customPath);
+            try {
+                fs.statSync(customPath);
+                useCustom = true;
+            }
+            catch (e) {}
+        }
+        if (useCustom) {
             fis.log.notice('Using custom template from ' + customPath);
             var tmp_path = fis.project.getTempPath(path.join('custom_template', +new Date() + ''));
             scaffold.util.copy(customPath, tmp_path);
@@ -98,6 +104,7 @@ exports.register = function (commander) {
                 deploy(tmp_path);
             });
         }
+
 
         function deploy(templatePath) {
             var source_path = path.join(templatePath, conf.config.path);
