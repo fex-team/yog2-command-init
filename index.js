@@ -107,7 +107,7 @@ exports.register = function (commander) {
 
 
         function deploy(templatePath) {
-            var source_path = path.join(templatePath, conf.config.path);
+            var source_path = path.join(templatePath, conf.config.path || '');
             var files = scaffold.util.find(source_path);
             scaffold.prompt(conf.config.prompt, function (err, results) {
                 if (err) {
