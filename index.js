@@ -19,6 +19,7 @@ var path = require('path');
 
 exports.register = function (commander) {
     commander
+        .option('--fis3', 'fis3 mode', Boolean, false);
         .option('--verbose', 'output verbose help', Boolean, false);
 
     fis.util.map(templates, function (key, info) {
