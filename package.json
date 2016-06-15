@@ -1,6 +1,6 @@
 {
   "name": "yog2-command-init",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,6 +21,6 @@
   },
   "homepage": "https://github.com/fex-team/yog2-command-init",
   "dependencies": {
-    "fis-scaffold-kernel": "0.0.16"
+    "fis-scaffold-kernel": "0.2.0"
   }
 }
