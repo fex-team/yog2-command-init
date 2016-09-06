@@ -6,7 +6,8 @@
 
 /* eslint-disable fecs-camelcase, camelcase, max-nested-callbacks */
 
-var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
+var urlparse = require('url').parse;
 
 exports.name = 'init';
 exports.usage = '<command> [options]';
@@ -32,6 +33,23 @@ exports.register = function (commander) {
         var args = Array.prototype.slice.call(arguments);
         var options = args.pop();
         var template = args.shift();
+        var repo = args[0];
+        var type = null;
+        if (repo) {
+            var parsedRepo = urlparse(repo);
+            switch (parsedRepo.host) {
+                case 'github.com':
+                    type = 'github';
+                    repo = parsedRepo.path;
+                    break;
+                case 'gitlab.baidu.com':
+                    type = 'gitlab';
+                    repo = parsedRepo.path;
+                    break;
+                default:
+                    repo = null;
+            }
+        }
 
         if (options.verbose) {
             fis.log.level = fis.log.L_ALL;
@@ -73,9 +91,8 @@ exports.register = function (commander) {
             }
         }
 
-
         var scaffold = new(require('fis-scaffold-kernel'))({
-            type: conf.config.type,
+            type: type || conf.config.type,
             log: {
                 level: 4 // default show all log; set `0` == silent.
             }
@@ -98,7 +115,7 @@ exports.register = function (commander) {
             deploy(tmp_path);
         }
         else {
-            scaffold.download(conf.config.repos + '@' + version, function (err, tmp_path) {
+            scaffold.download(repo || (conf.config.repos + '@' + version), function (err, tmp_path) {
                 if (err) {
                     fis.log.error(err);
                 }
@@ -109,8 +126,30 @@ exports.register = function (commander) {
 
         function deploy(templatePath) {
             var source_path = path.join(templatePath, conf.config.path || '');
+            var script = path.join(source_path, '.scaffold.js');
+            var prompt = null;
+            var afterDeploy = null;
+            try {
+                var scaffoldConf = require(script);
+                if (scaffoldConf.prompt) {
+                    prompt = scaffoldConf.prompt;
+                }
+                if (scaffoldConf.afterDeploy) {
+                    afterDeploy = scaffoldConf.afterDeploy;
+                    prompt.push({
+                        name: 'runAfterScript',
+                        description: 'Run command after deploy: ' + afterDeploy + '?',
+                        type: 'boolean',
+                        required: true,
+                        'default': true
+                    })
+                }
+                scaffold.util.del(script);
+            } catch (e) {
+            }
+
             var files = scaffold.util.find(source_path);
-            scaffold.prompt(conf.config.prompt, function (err, results) {
+            scaffold.prompt(prompt || conf.config.prompt, function (err, results) {
                 if (err) {
                     fis.log.error(err);
                 }
@@ -121,6 +160,16 @@ exports.register = function (commander) {
                 }
                 results._namespace = fis.config.get('namespace');
                 fis.util.map(results, function (k, v) {
+                    
+                    if (afterDeploy) {
+                        afterDeploy = afterDeploy.replace(keyword_reg, function (m, $1) {
+                            if ($1 === k) {
+                                m = v;
+                            }
+                            return m;
+                        });
+                    }
+
                     fis.util.map(files, function (index, filepath) {
                         if (fs.lstatSync(filepath).isSymbolicLink() === false && fis.util.isTextFile(
                             filepath)) {
@@ -143,7 +192,16 @@ exports.register = function (commander) {
                     });
                 });
                 scaffold.deliver(source_path, dir, conf.config.roadmap);
-                fis.log.notice('Done');
+                if (afterDeploy) {
+                    fis.log.notice('Excute afterScript ' + afterDeploy);
+                    var run = exec(afterDeploy, function () {
+                        fis.log.notice('Done');
+                    });
+                    run.stdout.pipe(process.stdout);
+                    run.stderr.pipe(process.stderr);
+                } else {
+                    fis.log.notice('Done');
+                }
             });
         }
     });
