@@ -29,6 +29,15 @@ exports.register = function (commander) {
             .description('create a ' + key);
     });
 
+    var privateTemplates = fis.get('privateRepos') || [];
+    if(privateTemplates){
+        fis.util.map(privateTemplates, function(key, info) {
+            commander
+                .command(key)
+                .description('create a ' + key);
+        });
+    }
+
     commander.action(function () {
         var args = Array.prototype.slice.call(arguments);
         var options = args.pop();
@@ -81,10 +90,14 @@ exports.register = function (commander) {
             name = 'project';
         }
 
-        var conf = templates[name];
+        var conf = privateTemplates[name] || templates[name];
 
         if (!conf) {
             fis.log.error('invalid init command, see -h');
+        }else{
+            if(privateTemplates[name] && conf.host){
+                gitlabHost = conf.host;
+            }
         }
 
         var dir = process.cwd();
@@ -154,7 +167,7 @@ exports.register = function (commander) {
                         type: 'boolean',
                         required: true,
                         'default': true
-                    })
+                    });
                 }
                 scaffold.util.del(script);
             } catch (e) {
