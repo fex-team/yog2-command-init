@@ -35,19 +35,30 @@ exports.register = function (commander) {
         var template = args.shift();
         var repo = args[0];
         var type = null;
+        var gitlabHost = null;
         if (repo) {
             var parsedRepo = urlparse(repo);
-            switch (parsedRepo.host) {
-                case 'github.com':
-                    type = 'github';
-                    repo = parsedRepo.path;
-                    break;
-                case 'gitlab.baidu.com':
-                    type = 'gitlab';
-                    repo = parsedRepo.path;
-                    break;
-                default:
-                    repo = null;
+            if (parsedRepo.host) {
+                switch (parsedRepo.host) {
+                    case 'github.com':
+                        type = 'github';
+                        repo = parsedRepo.path;
+                        break;
+                    case 'gitlab.baidu.com':
+                        type = 'gitlab';
+                        repo = parsedRepo.path;
+                        break;
+                    default:
+                        if(parsedRepo.host.indexOf('gitlab') > -1){
+                            type = 'gitlab';
+                            repo = parsedRepo.path;
+                            gitlabHost = parsedRepo.href.replace(parsedRepo.path, '');
+                        }else{
+                            repo = null;
+                        }
+                }
+            }else{
+                repo = null;
             }
         }
 
@@ -95,7 +106,8 @@ exports.register = function (commander) {
             type: type || conf.config.type,
             log: {
                 level: 4 // default show all log; set `0` == silent.
-            }
+            },
+            repos: gitlabHost
         });
         fis.log.notice('Downloading and unzipping...');
         var keyword_reg = conf.config.keyword_reg || /\{\{-([\s\S]*?)-\}\}/ig;
