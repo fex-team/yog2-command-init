@@ -29,25 +29,45 @@ exports.register = function (commander) {
             .description('create a ' + key);
     });
 
+    var privateTemplates = fis.get('privateRepos') || [];
+    if(privateTemplates){
+        fis.util.map(privateTemplates, function(key, info) {
+            commander
+                .command(key)
+                .description('create a ' + key);
+        });
+    }
+
     commander.action(function () {
         var args = Array.prototype.slice.call(arguments);
         var options = args.pop();
         var template = args.shift();
         var repo = args[0];
         var type = null;
+        var gitlabHost = null;
         if (repo) {
             var parsedRepo = urlparse(repo);
-            switch (parsedRepo.host) {
-                case 'github.com':
-                    type = 'github';
-                    repo = parsedRepo.path;
-                    break;
-                case 'gitlab.baidu.com':
-                    type = 'gitlab';
-                    repo = parsedRepo.path;
-                    break;
-                default:
-                    repo = null;
+            if (parsedRepo.host) {
+                switch (parsedRepo.host) {
+                    case 'github.com':
+                        type = 'github';
+                        repo = parsedRepo.path;
+                        break;
+                    case 'gitlab.baidu.com':
+                        type = 'gitlab';
+                        repo = parsedRepo.path;
+                        break;
+                    default:
+                        if(parsedRepo.host.indexOf('gitlab') > -1){
+                            type = 'gitlab';
+                            repo = parsedRepo.path;
+                            gitlabHost = parsedRepo.href.replace(parsedRepo.path, '');
+                        }else{
+                            repo = null;
+                        }
+                }
+            }else{
+                repo = null;
             }
         }
 
@@ -70,10 +90,14 @@ exports.register = function (commander) {
             name = 'project';
         }
 
-        var conf = templates[name];
+        var conf = privateTemplates[name] || templates[name];
 
         if (!conf) {
             fis.log.error('invalid init command, see -h');
+        }else{
+            if(privateTemplates[name] && conf.host){
+                gitlabHost = conf.host;
+            }
         }
 
         var dir = process.cwd();
@@ -95,7 +119,8 @@ exports.register = function (commander) {
             type: type || conf.config.type,
             log: {
                 level: 4 // default show all log; set `0` == silent.
-            }
+            },
+            repos: gitlabHost
         });
         fis.log.notice('Downloading and unzipping...');
         var keyword_reg = conf.config.keyword_reg || /\{\{-([\s\S]*?)-\}\}/ig;
@@ -142,7 +167,7 @@ exports.register = function (commander) {
                         type: 'boolean',
                         required: true,
                         'default': true
-                    })
+                    });
                 }
                 scaffold.util.del(script);
             } catch (e) {
